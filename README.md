@@ -9,10 +9,13 @@ Design Document: [Sliding Ball](http://graphics.cs.cmu.edu/courses/15-466-f18/ga
 
 Screen Shot:
 
+Initial:
 ![Screen Shot](screenshot1.png)
 
+After slide up:
 ![Screen Shot](screenshot2.png)
 
+After a power slide up
 ![Screen Shot](screenshot3.png)
 
 Difficulties Encountered:
