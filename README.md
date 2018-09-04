@@ -5,7 +5,7 @@ Title: Sliding Ball
 
 Author: I-Chen Jwo
 
-Design Document: [TODO: name of design document](http://graphics.cs.cmu.edu/courses/15-466-f18/game0-designs/guanghay/)
+Design Document: [Sliding Ball](http://graphics.cs.cmu.edu/courses/15-466-f18/game0-designs/guanghay/)
 
 Screen Shot:
 
@@ -14,10 +14,10 @@ Screen Shot:
 ![Screen Shot](screenshot3.png)
 
 Difficulties Encountered:
-The most difficult one is how to initial a valid game that will end up only two balls left. Unfortunately, the problem hasn't been solved in this phase.
+The most difficult one is if the game delete elements everytime it updates, the game will have to maintain a irragular size of matrix and it will be difficult for update and draw. Instead of deleting everytime, I drew tiles to cover up the merged or deleted elements. In this way, the game could maintain a fix-shaped matrix.
 
 Good Code:
-I reused the resources and the functions in base0 as many as possible. In addition, I draw a tile to represent the empty space so I could maintain a fixed-sized matrix which could be updated easily.
+I reused the resources and the functions in base0 as many as possible. In addition, I draw a tile to represent the empty space so I could maintain a fixed-sized matrix which could be updated easily. 
 
 # Using This Base Code
 
