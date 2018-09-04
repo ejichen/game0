@@ -1,23 +1,21 @@
 # Game Information
 (Note: fill in this portion with information about your game.)
 
-Title: (TODO: your game's title)
+Title: Sliding Ball
 
-Author: (TODO: your name)
+Author: I-Chen Jwo
 
-Design Document: [TODO: name of design document](TODO: link to design document)
+Design Document: [TODO: name of design document](http://graphics.cs.cmu.edu/courses/15-466-f18/game0-designs/guanghay/)
 
 Screen Shot:
 
 ![Screen Shot](screenshot.png)
 
 Difficulties Encountered:
-
-TODO: write several sentences about any difficulties you may have encountered in creating the game.
+The most difficult one is how to initial a valid game that will end up only two balls left. Unfortunately, the problem hasn't been solved in this phase.
 
 Good Code:
-
-TODO: write a sentence or two about any code you think you did particularly well.
+I reused the resources and the functions in base0 as many as possible. In addition, I draw a tile to represent the empty space so I could maintain a fixed-sized matrix which could be updated easily.
 
 # Using This Base Code
 
