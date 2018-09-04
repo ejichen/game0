@@ -9,9 +9,9 @@ Design Document: [Sliding Ball](http://graphics.cs.cmu.edu/courses/15-466-f18/ga
 
 Screen Shot:
 
-![Screen Shot](screenshot1.png=250x)
-![Screen Shot](screenshot2.png=250x)
-![Screen Shot](screenshot3.png=250x)
+![Screen Shot](screenshot1.png =250x)
+![Screen Shot](screenshot2.png =250x)
+![Screen Shot](screenshot3.png =250x)
 
 Difficulties Encountered:
 The most difficult one is if the game delete elements everytime it updates, the game will have to maintain a irragular size of matrix and it will be difficult for update and draw. Instead of deleting everytime, I drew tiles to cover up the merged or deleted elements. In this way, the game could maintain a fix-shaped matrix.
