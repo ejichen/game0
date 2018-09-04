@@ -11,6 +11,7 @@
 #include <map>
 #include <cstddef>
 #include <random>
+#include <time.h>
 
 //helper defined later; throws if shader compilation fails:
 static GLuint compile_shader(GLenum type, std::string const &source);
@@ -204,12 +205,21 @@ Game::Game() {
 	//set up game board with meshes and rolls:
 	board_meshes.reserve(board_size.x * board_size.y);
 	board_rotations.reserve(board_size.x * board_size.y);
+	board_matrix.reserve(board_size.x * board_size.y);
 	std::mt19937 mt(0xbead1234);
 
-	std::vector< Mesh const * > meshes{ &doll_mesh, &egg_mesh, &cube_mesh };
+	// std::vector< Mesh const * > meshes{&egg_mesh, &cube_mesh, &tile_mesh};
+	meshes.push_back(&egg_mesh);
+	meshes.push_back(&cube_mesh);
+	meshes.push_back(&tile_mesh);
+	//initial random seed
+	srand (time(NULL));
 
 	for (uint32_t i = 0; i < board_size.x * board_size.y; ++i) {
-		board_meshes.emplace_back(meshes[mt()%meshes.size()]);
+		int draw_element =  rand() % 3;
+		// if(draw_element == 2) continue;
+		board_matrix.emplace_back(draw_element);
+		board_meshes.emplace_back(meshes[draw_element]);
 		board_rotations.emplace_back(glm::quat());
 	}
 }
@@ -232,29 +242,33 @@ bool Game::handle_event(SDL_Event const &evt, glm::uvec2 window_size) {
 	if (evt.type == SDL_KEYDOWN && evt.key.repeat) {
 		return false;
 	}
-	//handle tracking the state of WSAD for roll control:
+	//use shift to do the power slide
 	if (evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) {
-		if (evt.key.keysym.scancode == SDL_SCANCODE_W) {
-			controls.roll_up = (evt.type == SDL_KEYDOWN);
+		if (evt.key.keysym.scancode == SDL_SCANCODE_UP && (evt.key.keysym.mod & KMOD_SHIFT)) {
+			controls.power_up = (evt.type == SDL_KEYDOWN);
 			return true;
-		} else if (evt.key.keysym.scancode == SDL_SCANCODE_S) {
-			controls.roll_down = (evt.type == SDL_KEYDOWN);
+		} else if (evt.key.keysym.scancode == SDL_SCANCODE_DOWN && (evt.key.keysym.mod & KMOD_SHIFT)) {
+			controls.power_down = (evt.type == SDL_KEYDOWN);
 			return true;
-		} else if (evt.key.keysym.scancode == SDL_SCANCODE_A) {
-			controls.roll_left = (evt.type == SDL_KEYDOWN);
+		} else if (evt.key.keysym.scancode == SDL_SCANCODE_LEFT && (evt.key.keysym.mod & KMOD_SHIFT)) {
+			controls.power_left = (evt.type == SDL_KEYDOWN);
 			return true;
-		} else if (evt.key.keysym.scancode == SDL_SCANCODE_D) {
-			controls.roll_right = (evt.type == SDL_KEYDOWN);
+		} else if (evt.key.keysym.scancode == SDL_SCANCODE_RIGHT && (evt.key.keysym.mod & KMOD_SHIFT)) {
+			controls.power_right = (evt.type == SDL_KEYDOWN);
 			return true;
 		}
 	}
 	//move cursor on L/R/U/D press:
 	if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0) {
-		if (evt.key.keysym.scancode == SDL_SCANCODE_LEFT) {
+		if (evt.key.keysym.scancode == SDL_SCANCODE_LEFT ) {
+			
 			if (cursor.x > 0) {
 				cursor.x -= 1;
 			}
+
 			return true;
+			
+			
 		} else if (evt.key.keysym.scancode == SDL_SCANCODE_RIGHT) {
 			if (cursor.x + 1 < board_size.x) {
 				cursor.x += 1;
@@ -277,32 +291,95 @@ bool Game::handle_event(SDL_Event const &evt, glm::uvec2 window_size) {
 
 void Game::update(float elapsed) {
 	//if the roll keys are pressed, rotate everything on the same row or column as the cursor:
-	glm::quat dr = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-	float amt = elapsed * 1.0f;
-	if (controls.roll_left) {
-		dr = glm::angleAxis(amt, glm::vec3(0.0f, 1.0f, 0.0f)) * dr;
-	}
-	if (controls.roll_right) {
-		dr = glm::angleAxis(-amt, glm::vec3(0.0f, 1.0f, 0.0f)) * dr;
-	}
-	if (controls.roll_up) {
-		dr = glm::angleAxis(amt, glm::vec3(1.0f, 0.0f, 0.0f)) * dr;
-	}
-	if (controls.roll_down) {
-		dr = glm::angleAxis(-amt, glm::vec3(1.0f, 0.0f, 0.0f)) * dr;
-	}
-	if (dr != glm::quat()) {
-		for (uint32_t x = 0; x < board_size.x; ++x) {
-			glm::quat &r = board_rotations[cursor.y * board_size.x + x];
-			r = glm::normalize(dr * r);
-		}
-		for (uint32_t y = 0; y < board_size.y; ++y) {
-			if (y != cursor.y) {
-				glm::quat &r = board_rotations[y * board_size.x + cursor.x];
-				r = glm::normalize(dr * r);
+	// glm::quat dr = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+	// float amt = elapsed * 1.0f;
+	// if (controls.power_left) {
+	// 	dr = glm::angleAxis(amt, glm::vec3(0.0f, 1.0f, 0.0f)) * dr;
+	// }
+	// if (controls.power_right) {
+	// 	dr = glm::angleAxis(-amt, glm::vec3(0.0f, 1.0f, 0.0f)) * dr;
+	// }
+	// if (controls.power_up) {
+	// 	dr = glm::angleAxis(amt, glm::vec3(1.0f, 0.0f, 0.0f)) * dr;
+	// }
+	// if (controls.power_down) {
+	// 	dr = glm::angleAxis(-amt, glm::vec3(1.0f, 0.0f, 0.0f)) * dr;
+	// }
+	// if (dr != glm::quat()) {
+	// 	for (uint32_t x = 0; x < board_size.x; ++x) {
+	// 		glm::quat &r = board_rotations[cursor.y * board_size.x + x];
+	// 		r = glm::normalize(dr * r);
+	// 	}
+	// 	for (uint32_t y = 0; y < board_size.y; ++y) {
+	// 		if (y != cursor.y) {
+	// 			glm::quat &r = board_rotations[y * board_size.x + cursor.x];
+	// 			r = glm::normalize(dr * r);
+	// 		}
+	// 	}
+	// }
+
+	
+	if (controls.power_left) {
+		for (uint32_t y = 0; y < board_size.y; ++y){
+			int current = 0;
+			for (uint32_t x = 0; x < board_size.x; ++x){
+				if(board_matrix[y * board_size.x + x] != 2){
+					board_matrix[y * board_size.x + current] = board_matrix[y * board_size.x + x];
+					current++;
+				}
+			}
+			while(current < board_size.x){
+				board_matrix[y * board_size.x + current] = 2;
+				current++;
 			}
 		}
 	}
+	if (controls.power_right) {
+		for (uint32_t y = 0; y < board_size.y; ++y){
+			int current = board_size.x - 1;
+			for (int32_t x = board_size.x - 1; x >= 0; --x){
+				if(board_matrix[y * board_size.x + x] != 2){
+					board_matrix[y * board_size.x + current] = board_matrix[y * board_size.x + x];
+					current--;
+				}
+			}
+			while(current >= 0){
+				board_matrix[y * board_size.x + current] = 2;
+				current--;
+			}
+		}
+	}
+	if (controls.power_down) {
+		for (uint32_t x = 0; x < board_size.x; ++x){
+			int current = 0;
+			for (uint32_t y = 0; y < board_size.y; ++y){
+				if(board_matrix[y * board_size.x + x] != 2){
+					board_matrix[current * board_size.x + x] = board_matrix[y * board_size.x + x];
+					current++;
+				}
+			}
+			while(current < board_size.y){
+				board_matrix[current * board_size.x + x] = 2;
+				current++;
+			}
+		}
+	}
+	if (controls.power_up) {
+		for (uint32_t x = 0; x < board_size.x; ++x){
+			int current = board_size.y - 1;
+			for (int32_t y = board_size.y - 1; y >= 0; --y){
+				if(board_matrix[y * board_size.x + x] != 2){
+					board_matrix[current * board_size.x + x] = board_matrix[y * board_size.x + x];
+					current--;
+				}
+			}
+			while(current >= 0){
+				board_matrix[current * board_size.x + x] = 2;
+				current--;
+			}
+		}
+	}
+	
 }
 
 void Game::draw(glm::uvec2 drawable_size) {
@@ -360,7 +437,7 @@ void Game::draw(glm::uvec2 drawable_size) {
 
 	for (uint32_t y = 0; y < board_size.y; ++y) {
 		for (uint32_t x = 0; x < board_size.x; ++x) {
-			draw_mesh(tile_mesh,
+			draw_mesh(*meshes[2],
 				glm::mat4(
 					1.0f, 0.0f, 0.0f, 0.0f,
 					0.0f, 1.0f, 0.0f, 0.0f,
@@ -368,7 +445,8 @@ void Game::draw(glm::uvec2 drawable_size) {
 					x+0.5f, y+0.5f,-0.5f, 1.0f
 				)
 			);
-			draw_mesh(*board_meshes[y*board_size.x+x],
+
+			draw_mesh(*meshes[board_matrix[y*board_size.x+x]],
 				glm::mat4(
 					1.0f, 0.0f, 0.0f, 0.0f,
 					0.0f, 1.0f, 0.0f, 0.0f,
