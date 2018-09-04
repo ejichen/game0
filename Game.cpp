@@ -429,7 +429,6 @@ void Game::update(float elapsed) {
     if(!history.empty()){
       board_matrix = history.top();
 		  history.pop();
-		  //controls.undo = false;
     }
   }	
 }
