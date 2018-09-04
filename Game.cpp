@@ -274,34 +274,7 @@ bool Game::handle_event(SDL_Event const &evt, glm::uvec2 window_size) {
 			return true;
 		}
 	}
-	//move cursor on L/R/U/D press:
-	// if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0) {
-	// 	if (evt.key.keysym.scancode == SDL_SCANCODE_LEFT ) {
-			
-	// 		if (cursor.x > 0) {
-	// 			cursor.x -= 1;
-	// 		}
 
-	// 		return true;
-			
-			
-	// 	} else if (evt.key.keysym.scancode == SDL_SCANCODE_RIGHT) {
-	// 		if (cursor.x + 1 < board_size.x) {
-	// 			cursor.x += 1;
-	// 		}
-	// 		return true;
-	// 	} else if (evt.key.keysym.scancode == SDL_SCANCODE_UP) {
-	// 		if (cursor.y + 1 < board_size.y) {
-	// 			cursor.y += 1;
-	// 		}
-	// 		return true;
-	// 	} else if (evt.key.keysym.scancode == SDL_SCANCODE_DOWN) {
-	// 		if (cursor.y > 0) {
-	// 			cursor.y -= 1;
-	// 		}
-	// 		return true;
-	// 	}
-	// }
 	return false;
 }
 
@@ -335,6 +308,7 @@ void Game::update(float elapsed) {
 	// }
 
 	
+	//slide operation, move the elements and replace the space with tile
 	if (controls.slide_left) {
 		for (uint32_t y = 0; y < board_size.y; ++y){
 			int current = 0;
@@ -387,6 +361,76 @@ void Game::update(float elapsed) {
 				if(board_matrix[y * board_size.x + x] != 2){
 					board_matrix[current * board_size.x + x] = board_matrix[y * board_size.x + x];
 					current--;
+				}
+			}
+			while(current >= 0){
+				board_matrix[current * board_size.x + x] = 2;
+				current--;
+			}
+		}
+	}
+
+	//power slide operaion
+	if (controls.power_left) {
+		for (uint32_t y = 0; y < board_size.y; ++y){
+			int current = 0;
+			int check_dup = -1;
+			for (uint32_t x = 0; x < board_size.x; ++x){
+				if(board_matrix[y * board_size.x + x] != 2 && board_matrix[y * board_size.x + x] != check_dup){
+					board_matrix[y * board_size.x + current] = board_matrix[y * board_size.x + x];
+					current++;
+					check_dup = board_matrix[y * board_size.x + x];					
+				}
+			}
+			while(current < board_size.x){
+				board_matrix[y * board_size.x + current] = 2;
+				current++;
+			}
+		}
+	}
+	if (controls.power_right) {
+		for (uint32_t y = 0; y < board_size.y; ++y){
+			int current = board_size.x - 1;
+			int check_dup = -1;
+			for (int32_t x = board_size.x - 1; x >= 0; --x){
+				if(board_matrix[y * board_size.x + x] != 2 && board_matrix[y * board_size.x + x] != check_dup){
+					board_matrix[y * board_size.x + current] = board_matrix[y * board_size.x + x];
+					current--;
+					check_dup = board_matrix[y * board_size.x + x];
+				}
+			}
+			while(current >= 0){
+				board_matrix[y * board_size.x + current] = 2;
+				current--;
+			}
+		}
+	}
+	if (controls.power_down) {
+		for (uint32_t x = 0; x < board_size.x; ++x){
+			int current = 0;
+			int check_dup = -1;
+			for (uint32_t y = 0; y < board_size.y; ++y){
+				if(board_matrix[y * board_size.x + x] != 2 && board_matrix[y * board_size.x + x] != check_dup){
+					board_matrix[current * board_size.x + x] = board_matrix[y * board_size.x + x];
+					current++;
+					check_dup = board_matrix[y * board_size.x + x];
+				}
+			}
+			while(current < board_size.y){
+				board_matrix[current * board_size.x + x] = 2;
+				current++;
+			}
+		}
+	}
+	if (controls.power_up) {
+		for (uint32_t x = 0; x < board_size.x; ++x){
+			int current = board_size.y - 1;
+			int check_dup = -1;
+			for (int32_t y = board_size.y - 1; y >= 0; --y){
+				if(board_matrix[y * board_size.x + x] != 2 && board_matrix[y * board_size.x + x] != check_dup){
+					board_matrix[current * board_size.x + x] = board_matrix[y * board_size.x + x];
+					current--;
+					check_dup = board_matrix[y * board_size.x + x];
 				}
 			}
 			while(current >= 0){
@@ -473,15 +517,6 @@ void Game::draw(glm::uvec2 drawable_size) {
 			);
 		}
 	}
-	draw_mesh(cursor_mesh,
-		glm::mat4(
-			1.0f, 0.0f, 0.0f, 0.0f,
-			0.0f, 1.0f, 0.0f, 0.0f,
-			0.0f, 0.0f, 1.0f, 0.0f,
-			cursor.x+0.5f, cursor.y+0.5f, 0.0f, 1.0f
-		)
-	);
-
 
 	glUseProgram(0);
 
