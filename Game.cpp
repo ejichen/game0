@@ -239,10 +239,9 @@ bool Game::handle_event(SDL_Event const &evt, glm::uvec2 window_size) {
 	if (evt.type == SDL_KEYDOWN && evt.key.repeat) {
 		return false;
 	}
-  //add function for undo the game, if u is pressed, the gameboard will go back to the last step
 	if (evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) {
-		if(evt.key.keysym.scancode == SDL_SCANCODE_U ){
-			controls.undo = SDL_KEYDOWN;
+		if(evt.key.keysym.scancode == SDL_SCANCODE_U && !history.empty()){
+			controls.undo = (evt.type == SDL_KEYDOWN);
 			return true;
 		}
 
@@ -287,17 +286,15 @@ void Game::update(float elapsed) {
 
 	//slide operation, move the elements and replace the space with tile, the number of tile is 2
 	if (controls.slide_left) {
-    //loop through every row
+    //loop on every row
 		for (uint32_t y = 0; y < board_size.y; ++y){
 			int current = 0;
 			for (uint32_t x = 0; x < board_size.x; ++x){
-				//if the element is not equal to tile, then move it toward
-        if(board_matrix[y * board_size.x + x] != 2){
+				if(board_matrix[y * board_size.x + x] != 2){
 					board_matrix[y * board_size.x + current] = board_matrix[y * board_size.x + x];
 					current++;
 				}
 			}
-      //fill out the rest of the row with tiles
 			while(current < board_size.x){
 				board_matrix[y * board_size.x + current] = 2;
 				current++;
@@ -358,14 +355,11 @@ void Game::update(float elapsed) {
 	if (controls.power_left) {
 		for (uint32_t y = 0; y < board_size.y; ++y){
 			int current = 0;
-      //check if the element is equal to the previous one
 			int check_dup = -1;
 			for (uint32_t x = 0; x < board_size.x; ++x){
-        //if the element is not equal to tile or equal to duplicate element, move it forward
 				if(board_matrix[y * board_size.x + x] != 2 && board_matrix[y * board_size.x + x] != check_dup){
 					board_matrix[y * board_size.x + current] = board_matrix[y * board_size.x + x];
 					current++;
-          //update the element for checking duplication
 					check_dup = board_matrix[y * board_size.x + x];					
 				}
 			}
@@ -431,12 +425,13 @@ void Game::update(float elapsed) {
 		history.push(board_matrix);
 	}
 
-	if(controls.undo && !history.empty()){
-		board_matrix = history.top();
-		history.pop();
-		controls.undo = false;
-	}
-	
+	if(controls.undo){
+    if(!history.empty()){
+      board_matrix = history.top();
+		  history.pop();
+		  //controls.undo = false;
+    }
+  }	
 }
 
 void Game::draw(glm::uvec2 drawable_size) {
@@ -494,7 +489,7 @@ void Game::draw(glm::uvec2 drawable_size) {
 
 	for (uint32_t y = 0; y < board_size.y; ++y) {
 		for (uint32_t x = 0; x < board_size.x; ++x) {
-			//use the content in meshes to draw, number 2 is tile
+			
 			draw_mesh(*meshes[2],
 				glm::mat4(
 					1.0f, 0.0f, 0.0f, 0.0f,
