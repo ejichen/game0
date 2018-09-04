@@ -203,8 +203,6 @@ Game::Game() {
 
 	//----------------
 	//set up game board with meshes and rolls:
-	board_meshes.reserve(board_size.x * board_size.y);
-	board_rotations.reserve(board_size.x * board_size.y);
 	board_matrix.reserve(board_size.x * board_size.y);
 	std::mt19937 mt(0xbead1234);
 
@@ -219,9 +217,8 @@ Game::Game() {
 		int draw_element =  rand() % 3;
 		// if(draw_element == 2) continue;
 		board_matrix.emplace_back(draw_element);
-		board_meshes.emplace_back(meshes[draw_element]);
-		board_rotations.emplace_back(glm::quat());
 	}
+	history.push(board_matrix);
 }
 
 Game::~Game() {
@@ -242,7 +239,15 @@ bool Game::handle_event(SDL_Event const &evt, glm::uvec2 window_size) {
 	if (evt.type == SDL_KEYDOWN && evt.key.repeat) {
 		return false;
 	}
-	//use shift to do the power slide
+	if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0) {
+		if(evt.key.keysym.scancode == SDL_SCANCODE_U && !history.empty()){
+			controls.undo = true;
+			return true;
+		}
+
+	}
+
+	//use shift + U/D/L/R to do the power slide
 	if (evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) {
 		if (evt.key.keysym.scancode == SDL_SCANCODE_UP && (evt.key.keysym.mod & KMOD_SHIFT)) {
 			controls.power_up = (evt.type == SDL_KEYDOWN);
@@ -257,9 +262,8 @@ bool Game::handle_event(SDL_Event const &evt, glm::uvec2 window_size) {
 			controls.power_right = (evt.type == SDL_KEYDOWN);
 			return true;
 		}
-	}
-
-	if (evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) {
+	//use U/D/L/R to do the normal slide
+	
 		if (evt.key.keysym.scancode == SDL_SCANCODE_UP) {
 			controls.slide_up = (evt.type == SDL_KEYDOWN);
 			return true;
@@ -279,35 +283,7 @@ bool Game::handle_event(SDL_Event const &evt, glm::uvec2 window_size) {
 }
 
 void Game::update(float elapsed) {
-	//if the roll keys are pressed, rotate everything on the same row or column as the cursor:
-	// glm::quat dr = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-	// float amt = elapsed * 1.0f;
-	// if (controls.power_left) {
-	// 	dr = glm::angleAxis(amt, glm::vec3(0.0f, 1.0f, 0.0f)) * dr;
-	// }
-	// if (controls.power_right) {
-	// 	dr = glm::angleAxis(-amt, glm::vec3(0.0f, 1.0f, 0.0f)) * dr;
-	// }
-	// if (controls.power_up) {
-	// 	dr = glm::angleAxis(amt, glm::vec3(1.0f, 0.0f, 0.0f)) * dr;
-	// }
-	// if (controls.power_down) {
-	// 	dr = glm::angleAxis(-amt, glm::vec3(1.0f, 0.0f, 0.0f)) * dr;
-	// }
-	// if (dr != glm::quat()) {
-	// 	for (uint32_t x = 0; x < board_size.x; ++x) {
-	// 		glm::quat &r = board_rotations[cursor.y * board_size.x + x];
-	// 		r = glm::normalize(dr * r);
-	// 	}
-	// 	for (uint32_t y = 0; y < board_size.y; ++y) {
-	// 		if (y != cursor.y) {
-	// 			glm::quat &r = board_rotations[y * board_size.x + cursor.x];
-	// 			r = glm::normalize(dr * r);
-	// 		}
-	// 	}
-	// }
 
-	
 	//slide operation, move the elements and replace the space with tile
 	if (controls.slide_left) {
 		for (uint32_t y = 0; y < board_size.y; ++y){
@@ -323,6 +299,7 @@ void Game::update(float elapsed) {
 				current++;
 			}
 		}
+		history.push(board_matrix);
 	}
 	if (controls.slide_right) {
 		for (uint32_t y = 0; y < board_size.y; ++y){
@@ -338,6 +315,7 @@ void Game::update(float elapsed) {
 				current--;
 			}
 		}
+		history.push(board_matrix);
 	}
 	if (controls.slide_down) {
 		for (uint32_t x = 0; x < board_size.x; ++x){
@@ -353,6 +331,7 @@ void Game::update(float elapsed) {
 				current++;
 			}
 		}
+		history.push(board_matrix);
 	}
 	if (controls.slide_up) {
 		for (uint32_t x = 0; x < board_size.x; ++x){
@@ -368,9 +347,10 @@ void Game::update(float elapsed) {
 				current--;
 			}
 		}
+		history.push(board_matrix);
 	}
 
-	//power slide operaion
+	//power slide operaion, if the element is the same as the previous one, then merge it 
 	if (controls.power_left) {
 		for (uint32_t y = 0; y < board_size.y; ++y){
 			int current = 0;
@@ -387,6 +367,7 @@ void Game::update(float elapsed) {
 				current++;
 			}
 		}
+		history.push(board_matrix);
 	}
 	if (controls.power_right) {
 		for (uint32_t y = 0; y < board_size.y; ++y){
@@ -404,6 +385,7 @@ void Game::update(float elapsed) {
 				current--;
 			}
 		}
+		history.push(board_matrix);
 	}
 	if (controls.power_down) {
 		for (uint32_t x = 0; x < board_size.x; ++x){
@@ -421,6 +403,7 @@ void Game::update(float elapsed) {
 				current++;
 			}
 		}
+		history.push(board_matrix);
 	}
 	if (controls.power_up) {
 		for (uint32_t x = 0; x < board_size.x; ++x){
@@ -438,6 +421,13 @@ void Game::update(float elapsed) {
 				current--;
 			}
 		}
+		history.push(board_matrix);
+	}
+
+	if(controls.undo){
+		board_matrix = history.top();
+		history.pop();
+		// controls.undo = false;
 	}
 	
 }
@@ -497,6 +487,7 @@ void Game::draw(glm::uvec2 drawable_size) {
 
 	for (uint32_t y = 0; y < board_size.y; ++y) {
 		for (uint32_t x = 0; x < board_size.x; ++x) {
+			
 			draw_mesh(*meshes[2],
 				glm::mat4(
 					1.0f, 0.0f, 0.0f, 0.0f,
@@ -505,7 +496,7 @@ void Game::draw(glm::uvec2 drawable_size) {
 					x+0.5f, y+0.5f,-0.5f, 1.0f
 				)
 			);
-
+			//use the content in board_matrix to draw, the number in board_matrix corresbond to the mesh in meshes
 			draw_mesh(*meshes[board_matrix[y*board_size.x+x]],
 				glm::mat4(
 					1.0f, 0.0f, 0.0f, 0.0f,
@@ -513,7 +504,7 @@ void Game::draw(glm::uvec2 drawable_size) {
 					0.0f, 0.0f, 1.0f, 0.0f,
 					x+0.5f, y+0.5f, 0.0f, 1.0f
 				)
-				* glm::mat4_cast(board_rotations[y*board_size.x+x])
+				
 			);
 		}
 	}

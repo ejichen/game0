@@ -5,7 +5,7 @@
 #include <SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-
+#include <stack> 
 #include <vector>
 
 // The 'Game' struct holds all of the game-relevant state,
@@ -69,12 +69,14 @@ struct Game {
 
 	//------- game state -------
 
-	glm::uvec2 board_size = glm::uvec2(5,5);
+	glm::uvec2 board_size = glm::uvec2(5,6);
 	std::vector< Mesh const * > board_meshes;
 	std::vector< glm::quat > board_rotations;
 	//contain the element of the board
 	std::vector< int > board_matrix;
 	glm::uvec2 cursor = glm::vec2(0,0);
+
+	std::stack<std::vector<int>> history;
 
 	struct {
 		bool power_left = false;
@@ -85,6 +87,7 @@ struct Game {
 		bool slide_right = false;
 		bool slide_up = false;
 		bool slide_down = false;
+		bool undo = false;
 
 	} controls;
 
