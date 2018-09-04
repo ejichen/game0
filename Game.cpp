@@ -258,34 +258,50 @@ bool Game::handle_event(SDL_Event const &evt, glm::uvec2 window_size) {
 			return true;
 		}
 	}
-	//move cursor on L/R/U/D press:
-	if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0) {
-		if (evt.key.keysym.scancode == SDL_SCANCODE_LEFT ) {
-			
-			if (cursor.x > 0) {
-				cursor.x -= 1;
-			}
 
-			return true;
-			
-			
-		} else if (evt.key.keysym.scancode == SDL_SCANCODE_RIGHT) {
-			if (cursor.x + 1 < board_size.x) {
-				cursor.x += 1;
-			}
-			return true;
-		} else if (evt.key.keysym.scancode == SDL_SCANCODE_UP) {
-			if (cursor.y + 1 < board_size.y) {
-				cursor.y += 1;
-			}
+	if (evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) {
+		if (evt.key.keysym.scancode == SDL_SCANCODE_UP) {
+			controls.slide_up = (evt.type == SDL_KEYDOWN);
 			return true;
 		} else if (evt.key.keysym.scancode == SDL_SCANCODE_DOWN) {
-			if (cursor.y > 0) {
-				cursor.y -= 1;
-			}
+			controls.slide_down = (evt.type == SDL_KEYDOWN);
+			return true;
+		} else if (evt.key.keysym.scancode == SDL_SCANCODE_LEFT) {
+			controls.slide_left = (evt.type == SDL_KEYDOWN);
+			return true;
+		} else if (evt.key.keysym.scancode == SDL_SCANCODE_RIGHT) {
+			controls.slide_right = (evt.type == SDL_KEYDOWN);
 			return true;
 		}
 	}
+	//move cursor on L/R/U/D press:
+	// if (evt.type == SDL_KEYDOWN && evt.key.repeat == 0) {
+	// 	if (evt.key.keysym.scancode == SDL_SCANCODE_LEFT ) {
+			
+	// 		if (cursor.x > 0) {
+	// 			cursor.x -= 1;
+	// 		}
+
+	// 		return true;
+			
+			
+	// 	} else if (evt.key.keysym.scancode == SDL_SCANCODE_RIGHT) {
+	// 		if (cursor.x + 1 < board_size.x) {
+	// 			cursor.x += 1;
+	// 		}
+	// 		return true;
+	// 	} else if (evt.key.keysym.scancode == SDL_SCANCODE_UP) {
+	// 		if (cursor.y + 1 < board_size.y) {
+	// 			cursor.y += 1;
+	// 		}
+	// 		return true;
+	// 	} else if (evt.key.keysym.scancode == SDL_SCANCODE_DOWN) {
+	// 		if (cursor.y > 0) {
+	// 			cursor.y -= 1;
+	// 		}
+	// 		return true;
+	// 	}
+	// }
 	return false;
 }
 
@@ -319,7 +335,7 @@ void Game::update(float elapsed) {
 	// }
 
 	
-	if (controls.power_left) {
+	if (controls.slide_left) {
 		for (uint32_t y = 0; y < board_size.y; ++y){
 			int current = 0;
 			for (uint32_t x = 0; x < board_size.x; ++x){
@@ -334,7 +350,7 @@ void Game::update(float elapsed) {
 			}
 		}
 	}
-	if (controls.power_right) {
+	if (controls.slide_right) {
 		for (uint32_t y = 0; y < board_size.y; ++y){
 			int current = board_size.x - 1;
 			for (int32_t x = board_size.x - 1; x >= 0; --x){
@@ -349,7 +365,7 @@ void Game::update(float elapsed) {
 			}
 		}
 	}
-	if (controls.power_down) {
+	if (controls.slide_down) {
 		for (uint32_t x = 0; x < board_size.x; ++x){
 			int current = 0;
 			for (uint32_t y = 0; y < board_size.y; ++y){
@@ -364,7 +380,7 @@ void Game::update(float elapsed) {
 			}
 		}
 	}
-	if (controls.power_up) {
+	if (controls.slide_up) {
 		for (uint32_t x = 0; x < board_size.x; ++x){
 			int current = board_size.y - 1;
 			for (int32_t y = board_size.y - 1; y >= 0; --y){
