@@ -9,7 +9,9 @@ Design Document: [TODO: name of design document](http://graphics.cs.cmu.edu/cour
 
 Screen Shot:
 
-![Screen Shot](screenshot.png)
+![Screen Shot](screenshot1.png)
+![Screen Shot](screenshot2.png)
+![Screen Shot](screenshot3.png)
 
 Difficulties Encountered:
 The most difficult one is how to initial a valid game that will end up only two balls left. Unfortunately, the problem hasn't been solved in this phase.
